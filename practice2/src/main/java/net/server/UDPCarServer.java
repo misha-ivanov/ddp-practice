@@ -37,7 +37,7 @@ public class UDPCarServer extends BasicCarServer implements Runnable{
 
             DatagramSocket serverSocket = new DatagramSocket(port);
             while(true) {
-                DatagramPacket packet = new DatagramPacket(new byte[packetlength],packetlength);
+                DatagramPacket packet = new DatagramPacket(new byte[packetlength], packetlength);
                 serverSocket.receive(packet);
                 //System.out.println("data="+packet.getData());
                 new Thread(new ClientWorker(packet, this, serverSocket)).start();
