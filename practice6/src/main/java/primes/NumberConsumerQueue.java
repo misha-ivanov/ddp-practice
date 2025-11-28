@@ -9,7 +9,7 @@ public class NumberConsumerQueue implements Runnable{
 
     public static final String queueRequestName = "PRIME-CHECK-CANDIDATE";
     public static final String queueResponseName = "PRIME-CHECK-RESULT";
-    public static final String url = "tcp://localhost:61616";
+    public static final String url = "tcp://185.188.181.184:8080";
     private static int counter = 0;
 
     private final int id;

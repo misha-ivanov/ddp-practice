@@ -27,7 +27,7 @@ public class NumberConsumerKafka implements Runnable{
 
     String user = "admin";
     String password = "admin-secret";
-    String broker = "localhost:8080";
+    String broker = "185.188.181.184:8080";
 
     static Properties prepareProperties(String username, String password, String brokers) {
         String jaasTemplate = "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"%s\" password=\"%s\";";

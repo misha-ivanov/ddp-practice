@@ -37,7 +37,7 @@
             </executions>
             <configuration>
                 <wsdlUrls>
-                    <wsdlUrl>http://localhost:8080/CarServer?wsdl</wsdlUrl>
+                    <wsdlUrl>http://185.188.181.184:8080/CarServer?wsdl</wsdlUrl>
                 </wsdlUrls>
                 <keep>true</keep>
                 <packageName>webservice.service</packageName>

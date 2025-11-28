@@ -5,6 +5,6 @@ public class MainQueue {
         new Thread(new NumberConsumerQueue()).start();
         new Thread(new NumberConsumerQueue()).start();
         new Thread(new NumberConsumerQueue()).start();
-        new Thread(new NumberPublisherQueue()).start();
+        //new Thread(new NumberPublisherQueue()).start();
     }
 }
