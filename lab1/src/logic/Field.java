@@ -1,15 +1,12 @@
 package logic;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 public class Field {
 
     final CellState[][] field;
-    private ArrayList<int[]> checked;
+    private boolean[][] checked;
 
     final int n;
 
@@ -21,7 +18,7 @@ public class Field {
                 field[row][col] = CellState.EMPTY;
             }
         }
-        checked = new ArrayList<>();
+        checked = new boolean[n][n];
     }
 
     public CellState getCellState(int row, int col) {
@@ -61,7 +58,7 @@ public class Field {
     }
 
     public boolean hasActiveChainInNeighbourhood(int row, int col, CellState state, CellState aim){
-        checked.add(new int[]{row, col});
+        checked[row][col] = true;
         for (int i = max(row-1, 0); i <= min(row + 1, n-1); i++) {
             for (int j = max(col - 1, 0); j <= min(col + 1, n - 1); j++) {
                 if(i == row && j == col) {
@@ -70,7 +67,7 @@ public class Field {
                 if (field[i][j] == aim) {
                     return true;
                 }
-                if (field[i][j] == state && !this.isInCheckedArray(i, j)) {
+                if (field[i][j] == state && !checked[i][j]) {
                     return hasActiveChainInNeighbourhood(i, j, state, aim);
                 }
             }
@@ -78,18 +75,8 @@ public class Field {
         return false;
     }
 
-    public boolean isInCheckedArray(int row, int col){
-        int[] cell = {row, col};
-        for (int[] c : checked) {
-            if (Arrays.equals(c, cell)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public boolean allowPlace(char player, int row, int col) {
-        checked = new ArrayList<>();
+        checked = new boolean[n][n];
         if(player == 'X' &&
                 (field[row][col] == CellState.EMPTY ||
                         field[row][col] == CellState.O_LIVE)) {
