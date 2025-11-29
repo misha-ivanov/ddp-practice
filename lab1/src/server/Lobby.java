@@ -6,7 +6,7 @@ import java.util.Queue;
 public class Lobby implements  MessageHandler {
     private final Queue<ClientConnection> queue = new LinkedList<>();
 
-    public void addConnection(ClientConnection connection) {
+    public synchronized void addConnection(ClientConnection connection) {
         queue.add(connection);
         System.out.println("Added to lobby: " + connection.getRemoteAddress() + " (position = " + queue.size() + ")");
         if(queue.size() >= 2) {
@@ -23,7 +23,7 @@ public class Lobby implements  MessageHandler {
     }
 
     @Override
-    public void onDisconnection(ClientConnection connection) {
+    public synchronized void onDisconnection(ClientConnection connection) {
         queue.remove(connection);
         connection.close();
 
