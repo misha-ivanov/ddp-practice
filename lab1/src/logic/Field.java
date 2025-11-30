@@ -18,6 +18,8 @@ public class Field {
                 field[row][col] = CellState.EMPTY;
             }
         }
+        field[0][0] = CellState.X_LIVE;
+        field[n-1][n-1] = CellState.O_LIVE;
         checked = new boolean[n][n];
     }
 

@@ -32,7 +32,7 @@ public class Session implements ClientConnectionHandler{
 
         field = new Field(n);
 
-        movesLeftX = 3;
+        movesLeftX = 2;
         movesLeftO = 0;
 
         movesDoneX = 0;
@@ -40,7 +40,7 @@ public class Session implements ClientConnectionHandler{
     }
 
     @Override
-    public void handle(ClientConnection connection, String message) {
+    public synchronized void handle(ClientConnection connection, String message) {
         if(!running)
             return;
 
@@ -56,9 +56,11 @@ public class Session implements ClientConnectionHandler{
             char requestPlayer;
             if(connection == c1) {
                 requestPlayer = 'X';
+                System.out.println("requestPlayer = 'X'");
             }
             else if (connection == c2) {
-                requestPlayer = 'Y';
+                requestPlayer = 'O';
+                System.out.println("requestPlayer = 'X'");
             }
             else return;
 
@@ -69,7 +71,7 @@ public class Session implements ClientConnectionHandler{
 
             // which cell
             int row = Integer.parseInt(parts[1]);
-            int col = Integer.parseInt(parts[1]);
+            int col = Integer.parseInt(parts[2]);
 
             // if can't place
             if(!field.allowPlace(currentPlayer, row, col)){
@@ -78,9 +80,15 @@ public class Session implements ClientConnectionHandler{
             }
 
             // place new cell
+            System.out.println("Before new cell");
             CellState state = field.getCellState(row, col);
+            System.out.println(field.getCellState(row, col).name());
+            System.out.println(currentPlayer);
+
             if(currentPlayer == 'X') {
                 if(state == CellState.EMPTY){
+                    System.out.println("EMPTY ATTACK");
+
                     field.setCellState(row, col, CellState.X_LIVE);
                 }
                 else {
@@ -111,11 +119,19 @@ public class Session implements ClientConnectionHandler{
 
             // turn current player
             if (currentPlayer == 'X' && movesLeftX == 0) {
-                broadcast(NetworkMessage.TURN.name() + " O");
+                currentPlayer = 'O';
+                if(movesDoneO == 0) {
+                    movesLeftO = 2;
+                }
+                else {
+                    movesLeftO = 3;
+                }
             }
             else if (currentPlayer == 'O' && movesLeftO == 0) {
-                broadcast(NetworkMessage.TURN.name() + " X");
+                currentPlayer = 'X';
+                movesLeftX = 3;
             }
+            broadcast(NetworkMessage.TURN.name() + " " + currentPlayer);
         }
 
     }

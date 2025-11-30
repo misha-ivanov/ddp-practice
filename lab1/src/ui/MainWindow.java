@@ -1,5 +1,6 @@
 package ui;
 
+import client.Client;
 import logic.CellState;
 
 import javax.swing.*;
@@ -8,16 +9,12 @@ import java.awt.*;
 public class MainWindow extends JFrame{
     private final int n;
 
-    private char myRole = '?';
-    private char currentTurn = '?';
-    private int movesLeft = 3;
-
     private final JButton[][] field;
-    private final JLabel roleLabel = new JLabel("Role: " + myRole);
-    private final JLabel turnLabel = new JLabel("Turn: " + currentTurn);
+    private final JLabel roleLabel = new JLabel("Role: -");
+    private final JLabel turnLabel = new JLabel("Turn: -");
     private final JLabel winnerLabel = new JLabel("Winner: -");
 
-    ClientListener clientListener;
+    Client client;
 
     public MainWindow(int n) {
         super("Virus War");
@@ -36,9 +33,11 @@ public class MainWindow extends JFrame{
         top.add(turnLabel);
         top.add(winnerLabel);
 
+        add(top, BorderLayout.NORTH);
+
         // Field
         JPanel grid = new JPanel(new GridLayout(n, n, 1, 1));
-        grid.setPreferredSize(new Dimension(600,600));
+        grid.setPreferredSize(new Dimension(400,400));
         for (int row = 0; row < n; row++) {
             for (int col = 0; col < n; col++) {
                 JButton button = new JButton();
@@ -50,6 +49,15 @@ public class MainWindow extends JFrame{
             }
         }
 
+        // Start cells of X and O
+        JButton button = field[0][0];
+        button.setText("X");
+        button.setBackground(Color.WHITE);
+
+        button = field[n-1][n-1];
+        button.setText("O");
+        button.setBackground(Color.WHITE);
+
         add(grid, BorderLayout.CENTER);
 
         pack();
@@ -58,7 +66,7 @@ public class MainWindow extends JFrame{
     }
 
     private void onCellClick(int row, int col) {
-        clientListener.sendAttack(row, col);
+        client.sendAttack(row, col);
     }
 
     public void setCell(int row, int col, CellState state) {
@@ -86,6 +94,7 @@ public class MainWindow extends JFrame{
     }
 
     public void changeRole(String text){
+        System.out.println("ROLE CHANGED");
         roleLabel.setText("Role: " + text);
     }
 
@@ -97,4 +106,7 @@ public class MainWindow extends JFrame{
         winnerLabel.setText("Winner: " + text);
     }
 
+    public void setClient(Client client) {
+        this.client = client;
+    }
 }

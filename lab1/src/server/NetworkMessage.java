@@ -7,5 +7,4 @@ public enum NetworkMessage {
     REJECT, // if attack is failed (no params)
     UPDATE, // update state of cell(i, j)
     WIN, // assign winner (X or Y)
-    END // declare the end of the game (no params)
 }
