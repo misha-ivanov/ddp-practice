@@ -3,7 +3,7 @@ package server;
 import logic.CellState;
 import logic.Field;
 
-public class Session implements MessageHandler{
+public class Session implements ClientConnectionHandler{
     // c1 plays by 'X', c2 by 'O'
     private final ClientConnection c1;
     private final ClientConnection c2;

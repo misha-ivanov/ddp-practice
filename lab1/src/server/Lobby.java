@@ -3,7 +3,7 @@ package server;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class Lobby implements  MessageHandler {
+public class Lobby implements  ClientConnectionHandler {
     private final Queue<ClientConnection> queue = new LinkedList<>();
 
     public synchronized void addConnection(ClientConnection connection) {

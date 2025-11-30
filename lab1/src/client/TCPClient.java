@@ -12,15 +12,10 @@ public class TCPClient {
 
     private int serverPort;
     private String serverHost;
-    private String message;
-    private String response;
-    private boolean isFirstPlayer;
-    private String status;
 
-    public TCPClient(String _serverHost, int _serverPort, String _message) {
+    public TCPClient(String _serverHost, int _serverPort) {
         serverHost = _serverHost;
         serverPort = _serverPort;
-        message = _message;
     }
 
     public void start() {
@@ -31,21 +26,6 @@ public class TCPClient {
             dis = new DataInputStream(socket.getInputStream());
             dos = new DataOutputStream(socket.getOutputStream());
 
-            response = dis.readUTF();
-            System.out.println("Server response: " + response);
-
-            // identify is first or second player
-            if(response.equals("X")){
-                isFirstPlayer = true;
-            }
-            else if(response.equals("O")) {
-                isFirstPlayer = false;
-            }
-            status = "Act X";
-
-            while (true) {
-
-            }
         }
         catch (IOException e) {
             System.out.println("TCPClient: " + e.getMessage());
@@ -53,7 +33,7 @@ public class TCPClient {
     }
 
     public static void main (String []args) {
-        TCPClient client = new TCPClient("localhost", 8080, "Hello from TCPClient!");
+        TCPClient client = new TCPClient("localhost", 8080);
         client.start();
     }
 }

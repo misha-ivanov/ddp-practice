@@ -10,9 +10,9 @@ public class ClientConnection extends Thread {
     private DataOutputStream dos;
     private Socket clientSocket;
     public volatile boolean running = true;
-    private MessageHandler handler;
+    private ClientConnectionHandler handler;
 
-    public ClientConnection(Socket _clientSocket, MessageHandler _handler) {
+    public ClientConnection(Socket _clientSocket, ClientConnectionHandler _handler) {
         try {
             clientSocket = _clientSocket;
             dis = new DataInputStream(clientSocket.getInputStream());
@@ -30,7 +30,7 @@ public class ClientConnection extends Thread {
             while (running && !clientSocket.isClosed()){
                 String message = dis.readUTF();
                 System.out.println("From: " + clientSocket.getRemoteSocketAddress() + ": " + message);
-                MessageHandler h = handler;
+                ClientConnectionHandler h = handler;
                 h.handle(this, message);
             }
             handler.onDisconnection(this);
@@ -42,7 +42,7 @@ public class ClientConnection extends Thread {
         }
     }
 
-    public void setHandler(MessageHandler _handler) {
+    public void setHandler(ClientConnectionHandler _handler) {
         this.handler = _handler;
     }
 
