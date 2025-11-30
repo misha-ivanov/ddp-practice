@@ -28,7 +28,8 @@ public class MainWindow extends JFrame{
         setLayout(new BorderLayout(4, 4));
 
         // Labels
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel top = new JPanel();
+        top.setLayout(new BoxLayout(top, BoxLayout.PAGE_AXIS));
         top.add(roleLabel);
         top.add(turnLabel);
         top.add(winnerLabel);
@@ -42,6 +43,7 @@ public class MainWindow extends JFrame{
             for (int col = 0; col < n; col++) {
                 JButton button = new JButton();
                 button.setFont(button.getFont().deriveFont(Font.BOLD, 18f));
+                button.setBackground(Color.WHITE);
                 final int rr = row, cc = col;
                 button.addActionListener(ev -> onCellClick(rr, cc));
                 field[row][col] = button;
@@ -94,7 +96,6 @@ public class MainWindow extends JFrame{
     }
 
     public void changeRole(String text){
-        System.out.println("ROLE CHANGED");
         roleLabel.setText("Role: " + text);
     }
 

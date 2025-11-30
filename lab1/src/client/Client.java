@@ -47,6 +47,7 @@ public class Client {
 
     public void onMessage(String message) {
         if(message == null) return;
+        System.out.println(message);
 
         String[] parts = message.split("\\s+");
         if (parts.length == 0) return;
