@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package session;
+
+option java_multiple_files = true;
+option java_package = "grpc.sessionservice";
+
+enum CellStateProto {
+  EMPTY = 0;
+  X_LIVE = 1;
+  X_DEAD = 2;
+  O_LIVE = 3;
+  O_DEAD = 4;
+}
+
+message Role {
+  string role = 1;
+}
+
+message Turn {
+  string turn = 1;
+}
+
+message Attack {
+  int32 row = 1;
+  int32 col = 2;
+}
+
+message Reject {
+  bool reject = 1;
+}
+
+message Update {
+  CellStateProto state = 1;
+  int32 row = 2;
+  int32 col = 3;
+}
+
+message Win {
+  string win = 1;
+}
+
+message ServerMessage {
+  oneof body {
+    Role role = 1;
+    Turn turn = 2;
+    Reject reject = 3;
+    Update update = 4;
+    Win win = 5;
+  }
+}
+
+service SessionService{
+  rpc Session(stream Attack) returns (stream ServerMessage);
+}
