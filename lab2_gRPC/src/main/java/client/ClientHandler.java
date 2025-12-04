@@ -1,7 +1,7 @@
 package client;
 
 public interface ClientHandler {
-    void onSend(String message);
+    void onSend(int row, int col);
     void setClient(Client client);
     void onDisconnect();
 }

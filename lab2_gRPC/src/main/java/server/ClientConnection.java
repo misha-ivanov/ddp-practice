@@ -1,17 +1,11 @@
 package server;
 
-public class ClientConnection {
-    String getRemoteAddress(){
-        return "";
-    }
-    
-    void close(){
-        
-    };
+import grpc.sessionservice.ServerMessage;
 
-    public void send(String msg) {
-    }
+public interface ClientConnection {
+    void send(ServerMessage msg);
 
-    public void setHandler(Session session) {
-    }
+    void close();
+
+    String getID();
 }

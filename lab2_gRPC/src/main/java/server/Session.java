@@ -1,12 +1,15 @@
 package server;
 
+import grpc.sessionservice.*;
 import logic.CellState;
 import logic.Field;
 
+import javax.annotation.Nullable;
+
 public class Session implements ClientConnectionHandler{
     // c1 plays by 'X', c2 by 'O'
-    private final ClientConnection c1;
-    private final ClientConnection c2;
+    private final ClientConnectionObject c1;
+    private final ClientConnectionObject c2;
     private final Field field;
 
     private final int n = 4;
@@ -23,17 +26,32 @@ public class Session implements ClientConnectionHandler{
     private int aliveX;
     private int aliveO;
 
-    public Session(ClientConnection _c1, ClientConnection _c2) {
+    public Session(ClientConnectionObject _c1, ClientConnectionObject _c2) {
         c1 = _c1;
         c2 = _c2;
 
         c1.setHandler(this);
         c2.setHandler(this);
 
-        c1.send(NetworkMessage.ROLE.name() + " X");
-        c2.send(NetworkMessage.ROLE.name() + " O");
+        // send roles
+        c1.send(ServerMessage.newBuilder()
+                .setRole(Role.newBuilder()
+                        .setRole("X")
+                        .build())
+                .build());
 
-        broadcast(NetworkMessage.TURN.name() + " " + currentPlayer);
+        c2.send(ServerMessage.newBuilder()
+                .setRole(Role.newBuilder()
+                        .setRole("O")
+                        .build())
+                .build());
+
+        // broadcast turn
+        broadcast(ServerMessage.newBuilder()
+                .setTurn(Turn.newBuilder()
+                        .setTurn(String.valueOf(currentPlayer))
+                        .build())
+                .build());
 
         field = new Field(n);
 
@@ -48,103 +66,123 @@ public class Session implements ClientConnectionHandler{
     }
 
     @Override
-    public synchronized void handle(ClientConnection connection, String message) {
+    public synchronized void handle(ClientConnectionObject connection, @Nullable grpc.sessionservice.Attack message) {
         if(!running)
             return;
 
-        if(message == null) return;
+        if (message == null)
+            return;
 
-        String[] parts = message.split("\\s+");
-        if (parts.length == 0) return;
+        // whom request
+        char requestPlayer;
+        if(connection == c1) {
+            requestPlayer = 'X';
+        }
+        else if (connection == c2) {
+            requestPlayer = 'O';
+        }
+        else return;
 
-        String cmd = parts[0].toUpperCase();
-
-        if(cmd.equals(NetworkMessage.ATTACK.name())){
-            // whom request
-            char requestPlayer;
-            if(connection == c1) {
-                requestPlayer = 'X';
-            }
-            else if (connection == c2) {
-                requestPlayer = 'O';
-            }
-            else return;
-
-            if(requestPlayer != currentPlayer) {
-                connection.send(NetworkMessage.REJECT.name());
-                return;
-            }
-
-            // which cell
-            int row = Integer.parseInt(parts[1]);
-            int col = Integer.parseInt(parts[2]);
-
-            // if can't place
-            if(!field.allowPlace(currentPlayer, row, col)){
-                connection.send(NetworkMessage.REJECT.name());
-                return;
-            }
-
-            // place new cell
-            CellState state = field.getCellState(row, col);
-
-            if(currentPlayer == 'X') {
-                if(state == CellState.EMPTY){
-                    field.setCellState(row, col, CellState.X_LIVE);
-                    aliveX++;
-                }
-                else {
-                    field.setCellState(row, col, CellState.O_DEAD);
-                    aliveX++;
-                    aliveO--;
-                }
-                movesLeftX--;
-                movesDoneX++;
-            }
-            else {
-                if(state == CellState.EMPTY){
-                    field.setCellState(row, col, CellState.O_LIVE);
-                    aliveO++;
-                }
-                else {
-                    field.setCellState(row, col, CellState.X_DEAD);
-                    aliveO++;
-                    aliveX--;
-                }
-                movesLeftO--;
-                movesDoneO++;
-            }
-
-            // send new updated
-            broadcast(NetworkMessage.UPDATE.name() + " " + row + " " + col + " " + field.getCellState(row, col));
-
-            // if someone wins
-            String winner = isSomeoneWins();
-            if (winner != null) {
-                broadcast(NetworkMessage.WIN.name() + " " + winner);
-            }
-
-            // turn current player
-            if (currentPlayer == 'X' && movesLeftX == 0) {
-                currentPlayer = 'O';
-                if(movesDoneO == 1) {
-                    movesLeftO = 2;
-                }
-                else {
-                    movesLeftO = 3;
-                }
-            }
-            else if (currentPlayer == 'O' && movesLeftO == 0) {
-                currentPlayer = 'X';
-                movesLeftX = 3;
-            }
-            broadcast(NetworkMessage.TURN.name() + " " + currentPlayer);
+        if(requestPlayer != currentPlayer) {
+            ServerMessage response = ServerMessage.newBuilder()
+                    .setReject(Reject.newBuilder().setReject(true))
+                    .build();
+            connection.send(response);
+            return;
         }
 
+        // which cell
+        int row = message.getRow();
+        int col = message.getCol();
+
+        // if can't place
+        if(!field.allowPlace(currentPlayer, row, col)){
+            ServerMessage response = ServerMessage.newBuilder()
+                    .setReject(Reject.newBuilder()
+                            .setReject(true)
+                            .build())
+                    .build();
+            connection.send(response);
+            return;
+        }
+
+        // place new cell
+        CellState state = field.getCellState(row, col);
+
+        CellStateProto newCellStateProto = CellStateProto.EMPTY;
+        if(currentPlayer == 'X') {
+            if(state == CellState.EMPTY){
+                field.setCellState(row, col, CellState.X_LIVE);
+                newCellStateProto = CellStateProto.X_LIVE;
+                aliveX++;
+            }
+            else {
+                field.setCellState(row, col, CellState.O_DEAD);
+                newCellStateProto = CellStateProto.O_DEAD;
+                aliveX++;
+                aliveO--;
+            }
+            movesLeftX--;
+            movesDoneX++;
+        }
+        else {
+            if(state == CellState.EMPTY){
+                field.setCellState(row, col, CellState.O_LIVE);
+                newCellStateProto = CellStateProto.O_LIVE;
+                aliveO++;
+            }
+            else {
+                field.setCellState(row, col, CellState.X_DEAD);
+                newCellStateProto = CellStateProto.X_DEAD;
+                aliveO++;
+                aliveX--;
+            }
+            movesLeftO--;
+            movesDoneO++;
+        }
+
+        // send new updated
+        broadcast(ServerMessage.newBuilder()
+                .setUpdate(Update.newBuilder()
+                        .setRow(row)
+                        .setCol(col)
+                        .setState(newCellStateProto)
+                        .build())
+                .build());
+
+        // if someone wins
+        String winner = isSomeoneWins();
+        if (winner != null) {
+            broadcast(ServerMessage.newBuilder()
+                    .setWin(Win.newBuilder()
+                            .setWin(winner)
+                            .build())
+                    .build());
+        }
+
+        // turn current player
+        if (currentPlayer == 'X' && movesLeftX == 0) {
+            currentPlayer = 'O';
+            if(movesDoneO == 1) {
+                movesLeftO = 2;
+            }
+            else {
+                movesLeftO = 3;
+            }
+        }
+        else if (currentPlayer == 'O' && movesLeftO == 0) {
+            currentPlayer = 'X';
+            movesLeftX = 3;
+        }
+        broadcast(ServerMessage.newBuilder()
+                .setTurn(Turn.newBuilder()
+                        .setTurn(String.valueOf(currentPlayer))
+                        .build())
+                .build());
     }
 
     @Override
-    public synchronized void onDisconnection(ClientConnection connection) {
+    public synchronized void onDisconnection(ClientConnectionObject connection) {
         if (!running) return;
         running = false;
 
@@ -154,7 +192,7 @@ public class Session implements ClientConnectionHandler{
         c2.close();
     }
 
-    public void broadcast(String msg) {
+    public void broadcast(ServerMessage msg) {
         c1.send(msg);
         c2.send(msg);
     }

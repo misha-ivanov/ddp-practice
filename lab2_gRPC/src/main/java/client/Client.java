@@ -1,7 +1,6 @@
 package client;
 
 import logic.CellState;
-import server.NetworkMessage;
 import ui.MainWindow;
 
 public class Client {
@@ -16,23 +15,23 @@ public class Client {
     private String turn;
 
     public static void main(String[] args) {
-        gRPCClient tcpClient = new gRPCClient(host, port);
+        gRPCClient grpcClient = new gRPCClient(host, port);
         MainWindow ui = new MainWindow(n);
-/*
-        Client client = new Client(tcpClient, ui);
 
-        tcpClient.setClient(client);
+        Client client = new Client(grpcClient, ui);
+
+        grpcClient.setClient(client);
         ui.setClient(client);
 
         new Thread(() -> {
             try {
-                tcpClient.connect();
+                grpcClient.connect();
             }
             catch (Exception e) {
                 e.printStackTrace();
                 client.onDisconnect();
             }
-        }, "Connect-Thread").start();*/
+        }, "Connect-Thread").start();
     }
 
 
@@ -42,7 +41,7 @@ public class Client {
     }
 
     public void sendAttack(int row, int col) {
-        handler.onSend(NetworkMessage.ATTACK.name() + " " + row + " " + col);
+        handler.onSend(row, col);
     }
 
     public void onMessage(String message) {

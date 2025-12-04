@@ -1,6 +1,8 @@
 package server;
 
+import javax.annotation.Nullable;
+
 public interface ClientConnectionHandler {
-    void handle(ClientConnection connection, String message);
-    void onDisconnection(ClientConnection connection);
+    void handle(ClientConnectionObject connection, @Nullable grpc.sessionservice.Attack message);
+    void onDisconnection(ClientConnectionObject connection);
 }
